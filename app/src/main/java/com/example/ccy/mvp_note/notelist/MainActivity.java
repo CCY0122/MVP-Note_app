@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.ccy.mvp_note.R;
+import com.example.ccy.mvp_note.data.Injection;
 import com.example.ccy.mvp_note.data.NotesRepository;
 import com.example.ccy.mvp_note.util.ActivityUtils;
 
@@ -37,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setHomeAsUpIndicator(R.drawable.ic_menu);  //设置toolbar最左侧图标(android.R.id.home),默认是一个返回箭头
+        ab.setDisplayHomeAsUpEnabled(true);//设置是否显示左侧图标
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         //创建fragment  (V)
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityUtils.addFragmentToActivity(getSupportFragmentManager(),mainFragment,R.id.fragment_content);
         }
         //创建Presenter  （P）
-        MainPresenter mainPresenter = new MainPresenter(NotesRepository.getInstence(),mainFragment);
+        MainPresenter mainPresenter = new MainPresenter(Injection.provideRespository(this),mainFragment);
 
     }
 

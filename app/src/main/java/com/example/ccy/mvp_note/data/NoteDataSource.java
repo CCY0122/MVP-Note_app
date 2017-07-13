@@ -34,13 +34,15 @@ public interface NoteDataSource {
 
     void saveNote(NoteBean note);
 
+    void updateNote(NoteBean note);
+
     void markNote(NoteBean note,boolean isActive); //标记便笺完成状态
 
     void clearCompleteNotes();
 
     void deleteAllNotes();
 
-    void deleteNote(NoteBean note);
+    void deleteNote(String noteId);
 
     void cacheEnable(boolean enable); //缓存是否可用（如果有)
 

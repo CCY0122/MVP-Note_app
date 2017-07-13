@@ -3,9 +3,13 @@ package com.example.ccy.mvp_note.data;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.example.ccy.mvp_note.data.local.NoteDbHelper;
+import com.example.ccy.mvp_note.data.local.NotesLocalDataSource;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,6 +18,7 @@ import java.util.TimerTask;
  * Created by ccy on 2017-07-12.
  * MVP之Model实现类
  * 管理数据处理
+ * 单例
  */
 
 public class NotesRepository implements NoteDataSource {
@@ -22,30 +27,45 @@ public class NotesRepository implements NoteDataSource {
     private Map<String,NoteBean> notesCache; //数据缓存，key为id
     private boolean cacheEnable = false; //是否可以从缓存中获取数据
 
-    private NotesRepository(){
-        //目前没有从数据库、服务端获取数据的实现类，先给缓存填充一些假数据
-        notesCache = new LinkedHashMap<>();
-        for (int i = 0; i < 20; i++) {
-            NoteBean bean = new NoteBean(""+i,""+i,i%2==0);
-            notesCache.put(bean.id,bean);
-        }
+    private NoteDataSource notesLocalDataSource;//从数据库获取数据的Model
+
+    private NotesRepository(NoteDataSource notesLocalDataSource){
+        this.notesLocalDataSource = notesLocalDataSource;
     }
 
-    public static NotesRepository getInstence(){
+    public static NotesRepository getInstence(NoteDataSource notesLocalDataSource){
         if(INSTANCE == null){
-            INSTANCE = new NotesRepository();
+            INSTANCE = new NotesRepository(notesLocalDataSource);
         }
         return INSTANCE;
     }
 
     @Override
-    public void getNote(String noteId, LoadNoteCallback callback) {
-        NoteBean bean = getNoteById(noteId);
-        if(bean != null){
-            callback.loadSuccess(bean);
-        }else{
-            callback.loadFailed();
+    public void getNote(final String noteId, final LoadNoteCallback callback) {
+
+        if(notesCache != null && cacheEnable){  //直接从缓存中取
+            NoteBean bean =getNoteFromCacheById(noteId);
+            if(bean != null){
+                callback.loadSuccess(notesCache.get(noteId));
+                return;
+            }
         }
+        notesLocalDataSource.getNote(noteId, new LoadNoteCallback() {
+            @Override
+            public void loadSuccess(NoteBean note) {
+               if(notesCache == null){
+                   notesCache = new LinkedHashMap<String, NoteBean>();
+               }
+               notesCache.put(noteId,note);
+                callback.loadSuccess(note);
+            }
+
+            @Override
+            public void loadFailed() {
+                callback.loadFailed();
+            }
+        });
+
     }
 
     /**
@@ -53,7 +73,7 @@ public class NotesRepository implements NoteDataSource {
      * @param noteId
      * @return
      */
-    private NoteBean getNoteById(String noteId){
+    private NoteBean getNoteFromCacheById(String noteId){
         if(notesCache == null || notesCache.isEmpty()){
             return null;
         }else{
@@ -66,13 +86,46 @@ public class NotesRepository implements NoteDataSource {
 
         if(notesCache != null && cacheEnable){
             callback.loadSucess(new ArrayList<NoteBean>(notesCache.values()));
-        }else {
-            callback.loadFailed();
+            return;
         }
+
+        notesLocalDataSource.getNotes(new LoadNotesCallback() {
+            @Override
+            public void loadSucess(List<NoteBean> notes) {
+                refreshCache(notes);
+                callback.loadSucess(notes);
+            }
+
+            @Override
+            public void loadFailed() {
+                callback.loadFailed();
+            }
+        });
+    }
+
+    private void refreshCache(List<NoteBean> notes) {
+        if(notesCache == null){
+            notesCache = new LinkedHashMap<>();
+        }
+        notesCache.clear();
+        for (NoteBean bean : notes){
+            notesCache.put(bean.id,bean);
+        }
+        cacheEnable = true;
     }
 
     @Override
     public void saveNote(NoteBean note) {
+        notesLocalDataSource.saveNote(note);
+        if(notesCache == null){
+            notesCache = new LinkedHashMap<>();
+        }
+        notesCache.put(note.id,note);
+    }
+
+    @Override
+    public void updateNote(NoteBean note) {
+        notesLocalDataSource.updateNote(note);
         if(notesCache == null){
             notesCache = new LinkedHashMap<>();
         }
@@ -81,6 +134,7 @@ public class NotesRepository implements NoteDataSource {
 
     @Override
     public void markNote(NoteBean note, boolean isActive) {
+        notesLocalDataSource.markNote(note,isActive);
         if(notesCache == null){
             notesCache = new LinkedHashMap<>();
         }
@@ -90,6 +144,7 @@ public class NotesRepository implements NoteDataSource {
 
     @Override
     public void clearCompleteNotes() {
+        notesLocalDataSource.clearCompleteNotes();
         if(notesCache == null){
             notesCache = new LinkedHashMap<>();
         }
@@ -105,6 +160,7 @@ public class NotesRepository implements NoteDataSource {
 
     @Override
     public void deleteAllNotes() {
+        notesLocalDataSource.deleteAllNotes();
         if(notesCache == null){
             notesCache = new LinkedHashMap<>();
         }
@@ -112,16 +168,16 @@ public class NotesRepository implements NoteDataSource {
     }
 
     @Override
-    public void deleteNote(NoteBean note) {
+    public void deleteNote(String noteId) {
+        notesLocalDataSource.deleteNote(noteId);
         if(notesCache == null){
             notesCache = new LinkedHashMap<>();
         }
-        notesCache.remove(note.id);
+        notesCache.remove(noteId);
     }
 
     @Override
     public void cacheEnable(boolean enable) {
-//        this.cacheEnable = enable;
-        cacheEnable = true; //因为还没有从数据库、服务器获取数据实现类，故暂时只能从缓存中获取
+        this.cacheEnable = enable;
     }
 }

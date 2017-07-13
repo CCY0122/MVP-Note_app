@@ -34,9 +34,10 @@
                 android:id="@+id/fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
                 android:layout_margin="16dp"
                 app:fabSize="normal"
+                app:layout_anchor="@id/fragment_content"
+                app:layout_anchorGravity="end|bottom"
                 android:src="@drawable/add"/>
         </android.support.design.widget.CoordinatorLayout>
     </LinearLayout>

@@ -16,7 +16,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".notedetail.DetailActivity"/>
         <activity android:name=".editnote.EditActivity"/>
     </application>
 

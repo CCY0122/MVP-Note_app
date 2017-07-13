@@ -31,7 +31,6 @@ import android.widget.TextView;
 import com.example.ccy.mvp_note.R;
 import com.example.ccy.mvp_note.data.NoteBean;
 import com.example.ccy.mvp_note.editnote.EditActivity;
-import com.example.ccy.mvp_note.notedetail.DetailActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -227,8 +226,8 @@ public class MainFragment extends Fragment implements MainContract.View {
 
     @Override
     public void showNoteDetailUi(String noteId) {
-        Intent i = new Intent(getActivity(), DetailActivity.class);
-        i.putExtra(DetailActivity.EXTRE_NOTE_ID,noteId);
+        Intent i = new Intent(getActivity(),EditActivity.class);
+        i.putExtra(EditActivity.EXTRA_NOTE_ID,noteId);
         startActivity(i);
     }
 

@@ -20,9 +20,9 @@ public class MainContract {
 
         void showLoadNotesError();//加载便笺失败
 
-        void showAddNotesUi();    //显示添加便笺界面
+        void showAddNotesUi();    //显示创建便笺界面
 
-        void showNoteDetailUi(String noteId); //显示便笺详情界面
+        void showNoteDetailUi(String noteId); //显示编辑便笺界面
 
         void showAllNoteTip();//以下4个方法对应各种状态下需显示的内容
 

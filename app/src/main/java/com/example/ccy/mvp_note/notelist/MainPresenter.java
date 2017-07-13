@@ -118,8 +118,9 @@ public class MainPresenter implements MainContract.Presenter {
 
     @Override
     public void deleteNote(NoteBean bean) {
-        notesRepository.deleteNote(bean);
+        notesRepository.deleteNote(bean.id);
         notesView.showNoteDeleted();
+        loadNotes(false,false);
     }
 
     @Override
@@ -131,12 +132,18 @@ public class MainPresenter implements MainContract.Presenter {
     public void makeNoteComplete(NoteBean bean) {
         notesRepository.markNote(bean, false);
         notesView.showNoteMarkedComplete();
+        if(filterType != FilterType.ALL_NOTES){
+            loadNotes(false,false);
+        }
     }
 
     @Override
     public void makeNoteActive(NoteBean bean) {
         notesRepository.markNote(bean, true);
         notesView.showNoteMarkedActive();
+        if(filterType != FilterType.ALL_NOTES){
+            loadNotes(false,false);
+        }
     }
 
     @Override
